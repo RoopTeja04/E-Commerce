@@ -1,8 +1,7 @@
 const UserModel = require("../Models/UserModel");
+const jwt_Token = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const { SendMail } = require("../utils/mails");
-const validator = require("validator");
 
 exports.register = async (req, res) => {
 
@@ -10,405 +9,114 @@ exports.register = async (req, res) => {
 
     try {
 
-        if (!data.email || !data.password || !data.name) {
+        if (!data.TempEmail || !data.password || !data.name) {
             return res.status(400).json({
                 message: "All fields are required",
-            });
+            })
         }
 
-        if (!validator.isEmail(data.email)) {
-            return res.status(400).json({
-                message: "Invalid Email",
-            });
+        const user = await UserModel.findOne({
+            $or: [
+                { email: data.TempEmail },
+                { TempEmail: data.TempEmail }
+            ]
+        });
+
+        if (user) {
+            return res.status(403).json({ message: "User Already Exists! Try to login" });
         }
 
-        if (!validator.isLength(data.password, { min: 6 })) {
-            return res.status(400).json({
-                message: "Password must be at least 6 characters long",
-            });
-        }
+        const hashPassword = await bcrypt.hash(data.password, 10);
 
-        if (!validator.isLength(data.name, { min: 3, max: 30 })) {
-            return res.status(400).json({
-                message: "Name must be between 3 and 30 characters long",
-            });
-        }
-
-        const User = await UserModel.findOne({ email: data.email });
-
-        if (User) {
-            return res.status(400).json({
-                message: "User already exists with this email ! Redirect to Login",
-            });
-        }
-
-        const HashPassword = await bcrypt.hash(data.password, 10);
+        const OTP = Math.floor(100000 + Math.random() * 900000).toString();
 
         const NewUser = await UserModel.create({
             name: data.name,
-            email: data.email,
-            password: HashPassword,
-        });
+            TempEmail: data.TempEmail,
+            password: hashPassword,
+            otp: OTP,
+            otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
+        })
 
-        return res.status(200).json({
-            message: "User Created Succesfully",
-            User: {
-                Name: NewUser.name,
-                Email: NewUser.email,
-                CreatedAt: NewUser.createdAt,
-                IsVerified: NewUser.isVerified
-            }
+        await NewUser.save();
+
+        await SendMail(
+            data.TempEmail,
+            "Email Verification",
+            `Your OTP for verification <br />
+            <h1>${OTP}</h1> <br />
+            It will expire in 5 minutes.
+            `
+        );
+
+        return res.status(201).json({
+            message: `<p>User Account Created Successfully. </p>. <br /> 
+            We sent to OTP to your Registered Email. <br />
+            For Verification.`,
         })
 
     } catch (err) {
         return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
+            message: "Internal Server Down",
+            error: err.message,
         })
     }
 }
 
-exports.login = async (req, res) => {
-
+exports.VerifyOTP = async (req, res) => {
     const data = req.body;
 
     try {
 
-        if (!data.email || !data.password) {
+        if (!data.TempEmail || !data.OTP) {
             return res.status(400).json({
-                message: "All fields are required",
-            });
-        }
-
-        if (!validator.isEmail(data.email)) {
-            return res.status(400).json({
-                message: "Invalid Email",
-            });
-        }
-
-        if (!validator.isLength(data.password, { min: 6 })) {
-            return res.status(400).json({
-                message: "Password must be at least 6 characters long",
-            });
-        }
-
-        const FindedUser = await UserModel.findOne({ email: data.email });
-
-        if (!FindedUser) {
-            return res.status(401).json({
-                message: "User Not Found, UnAuthorized",
+                message: "All fields are required"
             })
         }
 
-        if (!FindedUser.isVerified) {
-            return res.status(403).json({
-                message: "Please verify your email first"
-            })
-        }
-
-        const DecodePassword = await bcrypt.compare(data.password, FindedUser.password);
-
-        if (!DecodePassword) {
-            return res.status(401).json({
-                message: "Invalid Password, UnAuthorized",
-            })
-        }
-
-        if (!process.env.JWT_Token) {
-            throw new Error("JWT_Token secret is missing in environment variables");
-        }
-
-        const Token = jwt.sign(
-            {
-                userID: FindedUser._id,
-            },
-            process.env.JWT_Token,
-            { expiresIn: "1d" }
-        )
-
-        return res.status(200).json({
-            message: "Login Succesfully",
-            Token,
-        })
-
-    }
-    catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
-    }
-}
-
-exports.validateUser = async (req, res) => {
-
-    const data = req.body;
-
-    try {
-
-        if (!data.email) {
-            return res.status(400).json({
-                message: "Email is required",
-            });
-        }
-
-        const FindedUser = await UserModel.findOne({ email: data.email });
-
-        if (!FindedUser) {
-            return res.status(401).json({
-                message: "User Not Found, UnAuthorized",
-            })
-        }
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiry = new Date(Date.now() + 5 * 60 * 1000);
-
-        const hashOTP = await bcrypt.hash(otp, 10);
-
-        FindedUser.OTP = hashOTP;
-        FindedUser.OTPExpiry = expiry;
-        await FindedUser.save();
-
-        await SendMail(
-            data.email,
-            "Email Verification OTP",
-            `Your OTP for verification is: <h1>${otp}</h1> <br/> 
-            It will expire in 5 minutes.`
-        );
-
-        return res.status(200).json({
-            message: "OTP Sent Successfully to your Email",
-        })
-
-    }
-    catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
-    }
-}
-
-exports.verifyOTP = async (req, res) => {
-    const { email, otp } = req.body;
-
-    try {
-        if (!email || !otp) {
-            return res.status(400).json({
-                message: "Email and OTP are required",
-            });
-        }
-
-        const user = await UserModel.findOne({ email });
+        const user = await UserModel.findOne({ TempEmail: data.TempEmail });
 
         if (!user) {
-            return res.status(404).json({
-                message: "User not found",
-            });
+            return res.status(401).json({
+                message: "User Not Founded! Try to Register Again"
+            })
         }
 
-        const MatchedOTP = await bcrypt.compare(otp, user.OTP);
-
-        if (!MatchedOTP) {
+        if (new Date(user.otpExpiry).getTime() < Date.now()) {
             return res.status(400).json({
-                message: "Invalid OTP",
-            });
+                message: "OTP has expired! Please Try Again"
+            })
         }
 
-        if (user.OTPExpiry < Date.now()) {
-            user.OTP = null;
-            user.OTPExpiry = null;
-
-            await user.save();
-
+        if (user.otp !== data.OTP) {
             return res.status(400).json({
-                message: "OTP Expired",
-            });
+                message: "Invalid OTP! Please Try Again"
+            })
         }
 
         user.isVerified = true;
-        user.OTP = null;
-        user.OTPExpiry = null;
+        user.otp = null;
+        user.otpExpiry = null;
+        user.email = user.TempEmail;
+        user.TempEmail = null;
 
         await user.save();
 
-        const token = jwt.sign(
-            {
-                userID: user._id,
-            },
+        const Token = jwt_Token.sign(
+            { ID: user._id },
             process.env.JWT_Token,
-            { expiresIn: "1d" }
-        )
-
-        return res.status(200).json({
-            message: "OTP Verified Successfully. User is now verified.",
-            token,
-        });
-
-    } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        });
-    }
-}
-
-exports.UpdateEmail = async (req, res) => {
-
-    const { email } = req.body;
-
-    try {
-
-        if (!email) {
-            return res.status(400).json({
-                message: "All fields are required",
-            })
-        }
-
-        if (!validator.isEmail(email)) {
-            return res.status(400).json({
-                message: "Invalid Email",
-            });
-        }
-
-        const FindedUser = await UserModel.findOne({ email });
-
-        if (FindedUser) {
-            return res.status(409).json({
-                message: "Email already in use",
-            })
-        }
-
-        const currentUser = await UserModel.findById(req.user.userID);
-
-        if (!currentUser) {
-            return res.status(404).json({
-                message: "User Not Found",
-            })
-        }
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiry = new Date(Date.now() + 5 * 60 * 1000);
-
-        const hashOTP = await bcrypt.hash(otp, 10);
-
-        currentUser.email = email;
-        currentUser.OTP = hashOTP;
-        currentUser.OTPExpiry = expiry;
-
-        await currentUser.save();
-
-        await SendMail(
-            email,
-            "Email Verification OTP",
-            `Your OTP for verification is: <h1>${otp}</h1> <br/> 
-            It will expire in 5 minutes.`
+            { expiresIn: "7d" }
         );
 
         return res.status(200).json({
-            message: "OTP Sent Successfully to your New Email",
-        })
-
-    } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        });
-    }
-}
-
-exports.ChangePassword = async (req, res) => {
-
-    const { NewPassword } = req.body;
-
-    try {
-
-        if (!NewPassword) {
-            return res.status(400).json({
-                message: "All fields are required",
-            });
-        }
-
-        const FindedUser = await UserModel.findById(req.user.userID);
-
-        if (!FindedUser) {
-            return res.status(404).json({
-                message: "User Not Found",
-            })
-        }
-
-        if (!FindedUser.isVerified) {
-            return res.status(403).json({
-                message: "Please verify your email first",
-            })
-        }
-
-        const isMatched = await bcrypt.compare(NewPassword, FindedUser.password);
-
-        if (isMatched) {
-            return res.status(401).json({
-                message: "New Password will not same as previous password",
-            })
-        }
-
-        const hashPassword = await bcrypt.hash(NewPassword, 10);
-
-        FindedUser.password = hashPassword;
-        await FindedUser.save();
-
-        const Token = jwt.sign(
-            {
-                userID: FindedUser._id,
-            },
-            process.env.JWT_Token,
-            { expiresIn: "1d" }
-        )
-
-        return res.status(200).json({
-            message: "Password Changed Successfully",
+            message: "User Verified Successfully",
             Token,
-        })
+        });
 
     } catch (err) {
         return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
-    }
-}
-
-exports.updateProfile = async (req, res) => {
-
-    const data = req.body;
-
-    try {
-
-        if (!data.name || !data.address) {
-            return res.status(400).json({
-                message: "All fields are required",
-            });
-        }
-
-        const FindedUser = await UserModel.findById(req.user.userID);
-
-        if (!FindedUser) {
-            return res.status(404).json({
-                message: "User Not Found",
-            })
-        }
-
-        FindedUser.name = data.name;
-        FindedUser.address = data.address;
-        await FindedUser.save();
-
-        return res.status(200).json({
-            message: "Profile Updated Successfully",
-        })
-
-    } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
+            message: "Internal Server Down",
+            error: err.message,
         })
     }
 }
