@@ -173,7 +173,7 @@ exports.login = async (req, res) => {
       { ID: findedAccount._id },
       process.env.JWT_Token,
       { expiresIn: "7d" },
-    );
+    ); 
 
     return res.status(201).json({
       message: "User Verified Successfully",

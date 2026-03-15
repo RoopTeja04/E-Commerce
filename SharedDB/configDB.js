@@ -1,6 +1,6 @@
 const ConnectDB = async (mongoose) => {
     try{
-        const DB = process.env.MongoDB_URL;
+        const DB = process.env.MONGO_URI;
 
         if(!DB) {
             console.log("MONGO_URI is not defined in environment variables");
