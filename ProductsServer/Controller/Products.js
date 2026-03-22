@@ -1,5 +1,8 @@
 const Products = require("../Models/Products");
+const ProductService = require("../Services/ProductService");
 
+
+// Add Products in Bulk or single
 exports.addProductsInBulk = async (req, res) => {
     try {
 
@@ -27,8 +30,8 @@ exports.addProductsInBulk = async (req, res) => {
     }
 }
 
-
-exports.findItemsByCategory = async (req, res) => {
+// Search Bar 
+exports.findItemsByCategorySearch = async (req, res) => {
 
     const { category, productName } = req.query;
 
@@ -72,35 +75,64 @@ exports.findItemsByCategory = async (req, res) => {
     }
 }
 
+// Find Prdouct by ID
 exports.findItemsById = async (req, res) => {
 
     const ProductId = req.params.ProductId;
 
     try {
-
-        if(!ProductId){
-            return res.status(400).json({
-                message: "Please provide ProductId",
-            });
-        }
-
-        const FetchProduct = await Products.findById(ProductId);
-
-        if(!FetchProduct){
-            return res.status(404).json({
-                message: "No product found",
-            });
-        }
+        const FindProduct = await ProductService.FindOrder(ProductId);
 
         return res.status(201).json({
-            message: "Product fetched successfully",
-            product: FetchProduct,
-        });
+            message: "Product Founded",
+            FindProduct,
+        })
 
-    } catch (error) {
+    } catch (err) {
         return res.status(500).json({
-            message: "Failed to fetch products",
-            error: error.message
-        });
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
+}
+
+// Fetching the mobiles in frontend
+exports.findByCategory = async(req, res) => {
+
+    const category = req.query.category;
+
+    try{
+        const FindProduct = await ProductService.FindProducts(category);
+
+        return res.status(201).json({
+            message: "Available Products",
+            totalLength: FindProduct.length,
+            Products: FindProduct,
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
+}
+
+// Fetch Total Categories available in DB
+exports.findTotalCategories = async(req, res) => {
+    try{
+        const Categories = await Products.distinct("category");
+
+        return res.status(201).json({
+            message: "Available Categories",
+            totalLength: Categories.length,
+            Categories: Categories,
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
     }
 }
