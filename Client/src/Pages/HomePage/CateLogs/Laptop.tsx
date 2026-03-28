@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
 import { GetProductsForCategory } from '../../../Services/Api';
 import { FaChevronRight } from "react-icons/fa";
 import { FaChevronLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-const Mobiles = () => {
+const Laptop = () => {
 
     const navigate = useNavigate();
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const [Product, setProduct] = useState<any[]>([]);
-    const category = "mobile";
+    const category = "laptop";
 
     useEffect(() => {
         GetProducts(category);
@@ -63,10 +63,10 @@ const Mobiles = () => {
                         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     >
                         <style>{`
-                            .no-scrollbar::-webkit-scrollbar {
-                                display: none;
-                            }
-                        `}</style>
+                                   .no-scrollbar::-webkit-scrollbar {
+                                       display: none;
+                                   }
+                               `}</style>
                         {
                             Product.map((item, index) => (
                                 <div
@@ -123,4 +123,4 @@ const Mobiles = () => {
     )
 }
 
-export default Mobiles
+export default Laptop
