@@ -8,6 +8,7 @@ import OtpVerify from '../Components/AuthComponents/OtpVerify';
 import Cart from '../Pages/ShopPage/Cart';
 import Orders from '../Pages/ShopPage/Orders';
 import Profile from '../Pages/AccountPage/ProfilePage';
+import ProductSinglePage from '../Pages/CommonSinglePage/ProductSinglePage';
 
 const Router = createBrowserRouter([
     {
@@ -18,6 +19,7 @@ const Router = createBrowserRouter([
             { path: "cart", element: <Cart /> },
             { path: "orders", element: <Orders /> },
             { path: "account", element: <Profile /> },
+            { path: "product", element: <ProductSinglePage /> },
         ]
     },
     { path: "/login", element: <Login /> },
