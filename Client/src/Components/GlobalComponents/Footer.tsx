@@ -10,22 +10,7 @@ const Footer = () => {
     return (
         <>
             <div className='flex flex-col justify-center border-t border-[#e2e8f0] bg-[#f1f5f9] pb-8'>
-                <div className='flex flex-row justify-between pt-12 px-8 mx-10'>
-                    <div className='space-y-1'>
-                        <h1 className='text-2xl font-semibold'>Join our newsletter</h1>
-                        <p className='text-gray-500'>Subscribe to receive updates, access to exclusive deals, and more directly in <br /> your inbox.</p>
-                    </div>
-                    <div className='flex space-x-2 items-center w-[40%]'>
-                        <input
-                            type="text"
-                            placeholder='Enter your email address'
-                            className='border border-gray-300 rounded-md px-3 py-2 w-[90%] bg-white outline-none'
-                        />
-                        <button className='bg-[#0f0fbd] text-white px-4 py-2 rounded-md text-sm font-medium'>Subscribe</button>
-                    </div>
-                </div>
-
-                <div className='border-t border-[#e2e8f0] mx-10 my-8 py-8 flex flex-row justify-between'>
+                <div className='mx-10 my-8 py-8 flex flex-row justify-between'>
                     <div className='flex flex-col items-start space-y-4'>
                         <div className='flex flex-row space-x-2 items-center'>
                             <MdOutlineHeadsetMic className='text-2xl text-[#0f0fbd]' />
