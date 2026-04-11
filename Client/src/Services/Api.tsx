@@ -22,6 +22,14 @@ export const GetProductsForCategory = async (category: string) => {
     return await ProductAPI.get(`/get-products-by-category?category=${category}`);
 }
 
+export const GetProductsById = async (id: string) => {
+    return await ProductAPI.get(`/get-products-by-id/${id}`);
+}
+
+export const GetRelatedProducts = async (category: string, ProductId: string) => {
+    return await ProductAPI.get(`/get-related-products?category=${category}&ProductId=${ProductId}`);
+}
+
 // News Letter API
 
 export const NewsLetterAPI = axios.create({

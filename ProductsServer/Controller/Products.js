@@ -97,11 +97,11 @@ exports.findItemsById = async (req, res) => {
 }
 
 // Fetching the mobiles in frontend
-exports.findByCategory = async(req, res) => {
+exports.findByCategory = async (req, res) => {
 
     const category = req.query.category;
 
-    try{
+    try {
         const FindProduct = await ProductService.FindProducts(category);
 
         return res.status(201).json({
@@ -110,7 +110,7 @@ exports.findByCategory = async(req, res) => {
             Products: FindProduct,
         })
     }
-    catch(err){
+    catch (err) {
         return res.status(500).json({
             message: "Internal Server Error",
             error: err.message
@@ -119,8 +119,8 @@ exports.findByCategory = async(req, res) => {
 }
 
 // Fetch Total Categories available in DB
-exports.findTotalCategories = async(req, res) => {
-    try{
+exports.findTotalCategories = async (req, res) => {
+    try {
         const Categories = await Products.distinct("category");
 
         return res.status(201).json({
@@ -129,7 +129,29 @@ exports.findTotalCategories = async(req, res) => {
             Categories: Categories,
         })
     }
-    catch(err){
+    catch (err) {
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
+}
+
+// Fetch Related Products available in DB
+exports.findRelatedProducts = async (req, res) => {
+
+    const { category, ProductId } = req.query;
+
+    try {
+        const FindProduct = await ProductService.RelatedProducts(category, ProductId);
+
+        return res.status(201).json({
+            message: "Available Products",
+            totalLength: FindProduct.length,
+            Products: FindProduct,
+        })
+    }
+    catch (err) {
         return res.status(500).json({
             message: "Internal Server Error",
             error: err.message
