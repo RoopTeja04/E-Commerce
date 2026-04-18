@@ -12,7 +12,14 @@ async function findProductsInCategory(category){
     return findProducts;
 }
 
+async function findProductsByIds(ProductIds){
+    const foundProducts = await Products.find({ _id: { $in: ProductIds } });
+
+    return foundProducts;
+}
+
 module.exports = {
     findById,
     findProductsInCategory,
+    findProductsByIds,
 }

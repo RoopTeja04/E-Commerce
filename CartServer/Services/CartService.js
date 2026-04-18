@@ -18,6 +18,23 @@ async function AddItems(userId, productId) {
     }
 }
 
+async function GetCartItems(userId){
+    try{
+
+        const findCart = await CartRepository.GetCartItems(userId);
+
+        if(!findCart){
+            throw new Error("No Items Found in your Cart");
+        }
+
+        return findCart;
+
+    }catch(err){
+        throw new Error(err.message);
+    }
+}
+
 module.exports = {
-    AddItems
+    AddItems,
+    GetCartItems
 }

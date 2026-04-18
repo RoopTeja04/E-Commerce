@@ -30,8 +30,18 @@ async function RelatedProducts(category, ProductId) {
     return FinalProducts;
 }
 
+async function GetBulkProducts(ProductIds) {
+    const Products = await ProductRepository.findProductsByIds(ProductIds);
+
+    if (!Products)
+        throw new Error("No Products Found in this Category");
+
+    return Products;
+}
+
 module.exports = {
     FindOrder,
     FindProducts,
     RelatedProducts,
+    GetBulkProducts,
 }
