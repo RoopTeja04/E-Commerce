@@ -34,7 +34,26 @@ async function GetCartItems(userId){
     }
 }
 
+async function DeleteCartItem(userId, productId){
+    try{
+
+        const findCart = await CartRepository.FindCart(productId, userId);
+
+        if(!findCart){
+            throw new Error("No Items Found in your Cart");
+        }
+        
+        const deleteCartItem = await CartRepository.DeleteCartItem(userId, productId);
+
+        return deleteCartItem;
+
+    }catch(err){
+        throw new Error(err.message);
+    }
+}
+
 module.exports = {
     AddItems,
-    GetCartItems
+    GetCartItems,
+    DeleteCartItem
 }

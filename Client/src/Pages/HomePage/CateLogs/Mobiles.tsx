@@ -1,16 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GetProductsForCategory } from "../../../Services/Api";
-import { FaChevronRight } from "react-icons/fa";
-import { FaChevronLeft } from "react-icons/fa";
+import {
+  FaChevronRight,
+  FaChevronLeft,
+  FaExclamationCircle,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useCartStore from "../../../Stores/CartStores";
+import { SiTicktick } from "react-icons/si";
 
 const Mobiles = () => {
   const navigate = useNavigate();
 
+  const userId = "69953171cf5df437b21879f3";
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [Product, setProduct] = useState<any[]>([]);
   const category = "mobile";
+  const [popupInfo, setPopupInfo] = useState({
+    show: false,
+    success: false,
+    text: "",
+  });
+  const [state, setState] = useState("");
+  const [productId, setProductId] = useState("");
+
+  const { addItemsInCart, getCartItems, loading, setLoading } = useCartStore();
 
   useEffect(() => {
     GetProducts(category);
@@ -35,6 +50,26 @@ const Mobiles = () => {
   const scrollRight = () => {
     if (scrollRef.current)
       scrollRef.current.scrollBy({ left: 350, behavior: "smooth" });
+  };
+
+  const handleAddToCart = async (productId: string) => {
+    setProductId(productId);
+    setLoading(true);
+    setState("cart");
+    const res = await addItemsInCart(userId, productId);
+    setPopupInfo({ show: true, success: res.success, text: res.message });
+
+    if (res.success) {
+      setLoading(false);
+      getCartItems(userId);
+      setState("");
+    }
+
+    setTimeout(() => {
+      setPopupInfo((prev) => ({ ...prev, show: false }));
+      setProductId("");
+      setState("");
+    }, 5000);
   };
 
   return (
@@ -114,8 +149,16 @@ const Mobiles = () => {
                       maximumFractionDigits: 0,
                     })}
                   </p>
-                  <button className="bg-[#18181b] text-white px-4 py-3 rounded-md w-full">
-                    Add to Cart
+                  <button
+                    disabled={
+                      loading && state === "cart" && productId === item._id
+                    }
+                    onClick={() => handleAddToCart(item._id)}
+                    className="bg-[#18181b] text-white px-4 py-3 rounded-md w-full hover:bg-black transition-colors disabled:cursor-not-allowed"
+                  >
+                    {loading && state === "cart" && productId === item._id
+                      ? "Adding to Cart..."
+                      : "Add to Cart"}
                   </button>
                 </div>
               </div>
@@ -132,6 +175,23 @@ const Mobiles = () => {
           </button>
         </div>
       </div>
+
+      {popupInfo.show && (
+        <div
+          className={`fixed top-24 right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl transition-all duration-300 animate-fade-in flex items-center gap-3 border ${
+            popupInfo.success
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-red-50 text-red-700 border-red-200"
+          }`}
+        >
+          {popupInfo.success ? (
+            <SiTicktick className="text-xl" />
+          ) : (
+            <FaExclamationCircle className="text-xl" />
+          )}
+          <div className="font-semibold text-[15px]">{popupInfo.text}</div>
+        </div>
+      )}
     </>
   );
 };

@@ -37,8 +37,20 @@ async function GetCartItems(userId){
     }
 }
 
+async function DeleteCartItem(userId, productId){
+    try{
+
+        const deleteCartItem = await CartModel.deleteOne({ userId, productId });
+        return deleteCartItem;
+
+    }catch(err){
+        throw new Error(err.message);
+    }
+}
+
 module.exports = {
     FindCart,
     AddToCart,
-    GetCartItems
+    GetCartItems,
+    DeleteCartItem
 }

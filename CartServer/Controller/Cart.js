@@ -70,5 +70,41 @@ exports.GetCartItems = async (req, res) => {
             error: err.message
         })
     }
+}
 
+exports.deleteCartItem = async (req, res) => {
+
+    const { userId, productId } = req.params;
+
+    try {
+
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(401).json({
+                message: "UnAuthorized. User Not Found"
+            })
+        }
+
+        const findProduct = await FindProduct(productId);
+
+        if (!findProduct) {
+            return res.status(404).json({
+                message: "Product Not Found"
+            })
+        }
+
+        const deleteCartItem = await CartService.DeleteCartItem(userId, productId);
+
+        return res.status(200).json({
+            message: "Product Deleted From Cart Successfully",
+            data: deleteCartItem
+        })
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
 }
