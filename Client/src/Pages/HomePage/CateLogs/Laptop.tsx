@@ -4,6 +4,7 @@ import { FaChevronRight, FaChevronLeft, FaExclamationCircle } from "react-icons/
 import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import useCartStore from "../../../Stores/CartStores";
+import UserErrorPopUp from "../../../Components/GlobalComponents/UserErrorPopUp";
 
 const Laptop = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Laptop = () => {
   });
   const [state, setState] = useState("");
   const [productId, setProductId] = useState("");
+  const [popup, setPopup] = useState(false);
 
   const { addItemsInCart, getCartItems, loading, setLoading } = useCartStore();
 
@@ -49,6 +51,11 @@ const Laptop = () => {
   };
 
   const handleAddToCart = async (productId: string) => {
+    if (!userId) {
+      setPopup(true);
+      return;
+    }
+
     setProductId(productId);
     setLoading(true);
     setState("cart");
@@ -185,6 +192,12 @@ const Laptop = () => {
             <FaExclamationCircle className="text-xl" />
           )}
           <div className="font-semibold text-[15px]">{popupInfo.text}</div>
+        </div>
+      )}
+
+      {popup && (
+        <div>
+          <UserErrorPopUp />
         </div>
       )}
     </>

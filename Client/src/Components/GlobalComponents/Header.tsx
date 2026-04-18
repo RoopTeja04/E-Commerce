@@ -124,7 +124,7 @@ const Header = () => {
               <div className="flex flex-col items-start -space-y-1">
                 <p className="text-xs font-medium text-gray-400">CART</p>
                 <p className="text-base text-gray-700 font-semibold">
-                  {token ? "" : "Sign In"}
+                  {token ? "Items" : "Sign In"}
                 </p>
               </div>
             </Link>

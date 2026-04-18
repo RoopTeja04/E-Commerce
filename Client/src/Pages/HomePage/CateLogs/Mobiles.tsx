@@ -8,6 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import useCartStore from "../../../Stores/CartStores";
 import { SiTicktick } from "react-icons/si";
+import UserErrorPopUp from "../../../Components/GlobalComponents/UserErrorPopUp";
 
 const Mobiles = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Mobiles = () => {
   });
   const [state, setState] = useState("");
   const [productId, setProductId] = useState("");
+  const [popup, setPopup] = useState(false);
 
   const { addItemsInCart, getCartItems, loading, setLoading } = useCartStore();
 
@@ -53,6 +55,12 @@ const Mobiles = () => {
   };
 
   const handleAddToCart = async (productId: string) => {
+
+    if(!userId){
+      setPopup(true);
+      return;
+    }
+
     setProductId(productId);
     setLoading(true);
     setState("cart");
@@ -192,6 +200,14 @@ const Mobiles = () => {
           <div className="font-semibold text-[15px]">{popupInfo.text}</div>
         </div>
       )}
+
+      {
+        popup && (
+          <div>
+            <UserErrorPopUp />
+          </div>
+        )
+      }
     </>
   );
 };
