@@ -158,3 +158,23 @@ exports.findRelatedProducts = async (req, res) => {
         })
     }
 }
+
+// Get Bulk Products for cart
+exports.findProductsForCart = async (req, res) => {
+    const { ProductIds } = req.body;
+
+    try {
+        const FindProducts = await ProductService.GetBulkProducts(ProductIds);
+
+        return res.status(201).json({
+            message: "Products Fetched Successfully",
+            Products: FindProducts,
+        })
+    }
+    catch (err) {
+        return res.status(500).json({
+            message: "Internal Server Error",
+            error: err.message
+        })
+    }
+}

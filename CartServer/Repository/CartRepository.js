@@ -24,10 +24,33 @@ async function AddToCart(userId, productId) {
     } catch (err) {
         throw new Error(err.message);
     }
+}
 
+async function GetCartItems(userId){
+    try{
+
+        const findCart = await CartModel.find({ userId });
+        return findCart;
+
+    }catch(err){
+        throw new Error(err.message);
+    }
+}
+
+async function DeleteCartItem(userId, productId){
+    try{
+
+        const deleteCartItem = await CartModel.deleteOne({ userId, productId });
+        return deleteCartItem;
+
+    }catch(err){
+        throw new Error(err.message);
+    }
 }
 
 module.exports = {
     FindCart,
     AddToCart,
+    GetCartItems,
+    DeleteCartItem
 }

@@ -1,5 +1,5 @@
 const Router = require("express").Router();
-const { addProductsInBulk, findItemsByCategorySearch, findItemsById, findByCategory, findTotalCategories, findRelatedProducts } = require("../Controller/Products");
+const { addProductsInBulk, findItemsByCategorySearch, findItemsById, findByCategory, findTotalCategories, findRelatedProducts, findProductsForCart } = require("../Controller/Products");
 
 // Add products in bulk
 Router.post("/add-products-in-bulk", addProductsInBulk);
@@ -18,5 +18,8 @@ Router.get("/get-total-categories", findTotalCategories);
 
 // Get Related Products 
 Router.get("/get-related-products", findRelatedProducts);
+
+// Get Bulk Products for cart
+Router.post("/get-bulk-products", findProductsForCart);
 
 module.exports = Router;

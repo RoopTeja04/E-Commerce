@@ -37,7 +37,18 @@ const FindProduct = async (productId) => {
     }
 };
 
+const GetBulkProducts = async (ProductIds) => {
+    try {
+        const response = await ProductsAPI.post(`/products/get-bulk-products`, { ProductIds });
+        return response.data;
+    } catch (error) {
+        console.error("Error finding products:", error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     FindUser,
-    FindProduct
+    FindProduct,
+    GetBulkProducts
 };

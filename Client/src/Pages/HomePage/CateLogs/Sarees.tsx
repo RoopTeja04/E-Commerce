@@ -1,16 +1,29 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GetProductsForCategory } from "../../../Services/Api";
-import { FaChevronRight } from "react-icons/fa";
-import { FaChevronLeft } from "react-icons/fa";
+import { FaChevronRight, FaChevronLeft, FaExclamationCircle } from "react-icons/fa";
+import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
+import useCartStore from "../../../Stores/CartStores";
+import UserErrorPopUp from "../../../Components/GlobalComponents/UserErrorPopUp";
 
 const Sarees = () => {
   const navigate = useNavigate();
 
+  const userId = "69953171cf5df437b21879f3";
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [Product, setProduct] = useState<any[]>([]);
   const category = "saree";
+  const [popupInfo, setPopupInfo] = useState({
+    show: false,
+    success: false,
+    text: "",
+  });
+  const [state, setState] = useState("");
+  const [productId, setProductId] = useState("");
+  const [popup, setPopup] = useState(false);
+
+  const { addItemsInCart, getCartItems, loading, setLoading } = useCartStore();
 
   useEffect(() => {
     GetProducts(category);
@@ -37,11 +50,36 @@ const Sarees = () => {
       scrollRef.current.scrollBy({ left: 350, behavior: "smooth" });
   };
 
+  const handleAddToCart = async (productId: string) => {
+    if (!userId) {
+      setPopup(true);
+      return;
+    }
+
+    setProductId(productId);
+    setLoading(true);
+    setState("cart");
+    const res = await addItemsInCart(userId, productId);
+    setPopupInfo({ show: true, success: res.success, text: res.message });
+
+    if (res.success) {
+      setLoading(false);
+      getCartItems(userId);
+      setState("");
+    }
+
+    setTimeout(() => {
+      setPopupInfo((prev) => ({ ...prev, show: false }));
+      setProductId("");
+      setState("");
+    }, 5000);
+  };
+
   return (
     <>
       <div className="font-poppins my-8">
         <div className="flex justify-between">
-          <h1 className="text-2xl font-semibold ml-1">FLAGSHIP DEVICES</h1>
+          <h1 className="text-2xl font-semibold ml-1">TRADITIONAL SAREES</h1>
           <button className="underline underline-offset-8 text-[#0f0fbd] font-normal uppercase cursor-pointer">
             View All
           </button>
@@ -114,8 +152,16 @@ const Sarees = () => {
                       maximumFractionDigits: 0,
                     })}
                   </p>
-                  <button className="bg-[#18181b] text-white px-4 py-3 rounded-md w-full">
-                    Add to Cart
+                  <button
+                    disabled={
+                      loading && state === "cart" && productId === item._id
+                    }
+                    onClick={() => handleAddToCart(item._id)}
+                    className="bg-[#18181b] text-white px-4 py-3 rounded-md w-full hover:bg-black transition-colors disabled:cursor-not-allowed"
+                  >
+                    {loading && state === "cart" && productId === item._id
+                      ? "Adding to Cart..."
+                      : "Add to Cart"}
                   </button>
                 </div>
               </div>
@@ -132,6 +178,29 @@ const Sarees = () => {
           </button>
         </div>
       </div>
+
+      {popupInfo.show && (
+        <div
+          className={`fixed top-24 right-8 z-[100] px-6 py-4 rounded-xl shadow-2xl transition-all duration-300 animate-fade-in flex items-center gap-3 border ${
+            popupInfo.success
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-red-50 text-red-700 border-red-200"
+          }`}
+        >
+          {popupInfo.success ? (
+            <SiTicktick className="text-xl" />
+          ) : (
+            <FaExclamationCircle className="text-xl" />
+          )}
+          <div className="font-semibold text-[15px]">{popupInfo.text}</div>
+        </div>
+      )}
+
+      {popup && (
+        <div>
+          <UserErrorPopUp />
+        </div>
+      )}
     </>
   );
 };

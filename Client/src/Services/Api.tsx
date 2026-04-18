@@ -44,3 +44,26 @@ export const NewsLetterAPI = axios.create({
 export const SubscribeNewsLetter = async (email: string) => {
     return await NewsLetterAPI.post("/create-news-letter", { email });
 }
+
+// Cart API
+
+export const CartAPI = axios.create({
+    baseURL: "http://localhost:5003/cart",
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+
+// Cart API Calling
+
+export const GetCartItems = async (userId: string) => {
+    return await CartAPI.get(`/get/${userId}`);
+}
+
+export const DeleteCartItem = async (userId: string, productId: string) => {
+    return await CartAPI.delete(`/delete/${userId}/${productId}`);
+}
+
+export const addItemsInCart = async (userId: string, productId: string) => {
+    return await CartAPI.post("/add", { userId, productId });
+}
