@@ -98,12 +98,32 @@ exports.VerifyOTP = async (req, res) => {
     await user.save();
 
     const Token = jwt_Token.sign({ ID: user._id }, process.env.JWT_Token, {
-      expiresIn: "7d",
+      expiresIn: "15m", // Access Token: 15 minutes
     });
+
+    const refreshToken = jwt_Token.sign({ ID: user._id }, process.env.REFRESH_TOKEN_SECRET || "REFRESH_SECRET", {
+      expiresIn: "7d", // Refresh Token: 7 days
+    });
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.otp;
+    delete userResponse.otpExpiry;
 
     return res.status(200).json({
       message: "User Verified Successfully",
       Token,
+      user: userResponse
     });
   } catch (err) {
     return res.status(500).json({
@@ -124,27 +144,24 @@ exports.login = async (req, res) => {
     }
 
     const findedAccount = await UserModel.findOne({
-      $or: [{ email: data.email }, { TempEmail: data.TempEmail }],
+      $or: [{ email: data.email }, { TempEmail: data.email }],
     });
 
     if (!findedAccount) {
-      return res.status(401).json({
-        message: "UnAuthorized! No Account founded with this email",
+      return res.status(404).json({
+        message: "Account not found with this email! Try to register",
       });
     }
 
     if (findedAccount.TempEmail || findedAccount.isVerified === false) {
       const OTP = Math.floor(100000 + Math.random() * 900000).toString();
+      findedAccount.otp = OTP;
+      findedAccount.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
-      const user = await findedAccount.create({
-        OTP: OTP,
-        otpExpiry: new Date(Date.now() + 5 * 60 * 1000),
-      });
-
-      await user.save();
+      await findedAccount.save();
 
       await SendMail(
-        data.TempEmail,
+        findedAccount.TempEmail || findedAccount.email,
         "Email Verification",
         `Your OTP for verification <br />
             <h1>${OTP}</h1> <br />
@@ -158,9 +175,9 @@ exports.login = async (req, res) => {
       });
     }
 
-    const comparePassword = await bcrypt.hash(
-      findedAccount.password,
+    const comparePassword = await bcrypt.compare(
       data.password,
+      findedAccount.password,
     );
 
     if (!comparePassword) {
@@ -172,12 +189,34 @@ exports.login = async (req, res) => {
     const token = jwt_Token.sign(
       { ID: findedAccount._id },
       process.env.JWT_Token,
-      { expiresIn: "7d" },
+      { expiresIn: "15m" },
     ); 
+
+    const refreshToken = jwt_Token.sign(
+      { ID: findedAccount._id },
+      process.env.REFRESH_TOKEN_SECRET || "REFRESH_SECRET",
+      { expiresIn: "7d" },
+    );
+
+    findedAccount.refreshToken = refreshToken;
+    await findedAccount.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false, 
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const userResponse = findedAccount.toObject();
+    delete userResponse.password;
+    delete userResponse.otp;
+    delete userResponse.otpExpiry;
 
     return res.status(201).json({
       message: "User Verified Successfully",
       token,
+      user: userResponse
     });
   } catch (err) {
     return res.status(500).json({
@@ -249,6 +288,47 @@ exports.findUserById = async (req, res) => {
       message: "User Found",
       user: user,
     });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal Server Down",
+      error: err.message,
+    });
+  }
+};
+
+exports.refreshToken = async (req, res) => {
+  const cookies = req.cookies;
+
+  if (!cookies?.refreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
+  const refreshToken = cookies.refreshToken;
+
+  try {
+    const user = await UserModel.findOne({ refreshToken });
+
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    jwt_Token.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET || "REFRESH_SECRET",
+      (err, decoded) => {
+        if (err || user._id.toString() !== decoded.ID) {
+          return res.status(403).json({ message: "Invalid refresh token" });
+        }
+
+        const accessToken = jwt_Token.sign(
+          { ID: user._id },
+          process.env.JWT_Token,
+          { expiresIn: "15m" }
+        );
+
+        res.json({ accessToken, user });
+      }
+    );
   } catch (err) {
     return res.status(500).json({
       message: "Internal Server Down",

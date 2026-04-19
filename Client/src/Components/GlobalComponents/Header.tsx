@@ -8,11 +8,12 @@ import { FiPackage } from "react-icons/fi";
 import { FaCartShopping } from "react-icons/fa6";
 import axios from "axios";
 import useCartStore from "../../Stores/CartStores";
+import { useAuthStore } from "../../Stores/AuthStore";
 
 const Header = () => {
-  const token = localStorage.getItem("token");
-  const userId = "69953171cf5df437b21879f3";
-  const { cartCount, getCartItems } = useCartStore();
+    const { isAuthenticated, user, isAuthLoading, logout } = useAuthStore();
+    const userId = user?._id;
+    const { cartCount, getCartItems } = useCartStore();
 
   const [Location, setLoaction] = useState<string>("");
   const [showLocationPopUp, setShowLocationPopUp] = useState<boolean>(false);
@@ -51,8 +52,10 @@ const Header = () => {
   };
 
   useEffect(() => {
-    getCartItems(userId);
-  }, [getCartItems]);
+    if (isAuthenticated) {
+        getCartItems();
+    }
+  }, [isAuthenticated, getCartItems]);
 
   return (
     <>
@@ -96,16 +99,31 @@ const Header = () => {
             />
           </div>
           <div className="w-[35%] flex items-center justify-end space-x-6">
-            <Link
-              to={token ? "account" : "/login"}
-              className="flex felx-row space-x-2 items-center"
-            >
-              <VscAccount className="text-2xl text-[#000000]" />
-              <div className="flex flex-col items-start -space-y-1">
-                <p className="text-xs font-medium text-gray-400">ACCOUNT</p>
-                <p className="text-base text-gray-700 font-semibold">Sign In</p>
-              </div>
-            </Link>
+            {isAuthLoading ? (
+                <div className="flex flex-row space-x-2 items-center animate-pulse">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full" />
+                    <div className="flex flex-col space-y-1">
+                        <div className="h-2 w-10 bg-gray-200" />
+                        <div className="h-4 w-16 bg-gray-200" />
+                    </div>
+                </div>
+            ) : isAuthenticated ? (
+                <Link to="/account" className="flex flex-row space-x-2 items-center">
+                    <VscAccount className="text-2xl text-[#000000]" />
+                    <div className="flex flex-col items-start -space-y-1">
+                        <p className="text-xs font-medium text-gray-400">ACCOUNT</p>
+                        <p className="text-base text-gray-700 font-semibold">{user?.name}</p>
+                    </div>
+                </Link>
+            ) : (
+                <Link to="/login" className="flex flex-row space-x-2 items-center">
+                    <VscAccount className="text-2xl text-[#000000]" />
+                    <div className="flex flex-col items-start -space-y-1">
+                        <p className="text-xs font-medium text-gray-400">ACCOUNT</p>
+                        <p className="text-base text-gray-700 font-semibold">Sign In</p>
+                    </div>
+                </Link>
+            )}
             <Link to="orders" className="flex felx-row space-x-2 items-center">
               <FiPackage className="text-2xl text-[#000000]" />
               <div className="flex flex-col items-start -space-y-1">
@@ -113,18 +131,20 @@ const Header = () => {
                 <p className="text-base text-gray-700 font-semibold">Orders</p>
               </div>
             </Link>
-            <Link to="cart" className="flex felx-row space-x-4 items-center">
+            <Link to={isAuthenticated ? "cart" : "/login"} className="flex felx-row space-x-4 items-center">
               <div className="relative inline-block">
                 <FaCartShopping className="text-2xl text-black" />
 
-                <span className="absolute -top-3 -right-2 bg-[#0f0fbd] text-white text-xs rounded-full px-1.5 py-0.5">
-                  {cartCount}
-                </span>
+                {isAuthenticated && cartCount > 0 && (
+                  <span className="absolute -top-3 -right-2 bg-[#0f0fbd] text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cartCount}
+                  </span>
+                )}
               </div>
               <div className="flex flex-col items-start -space-y-1">
                 <p className="text-xs font-medium text-gray-400">CART</p>
                 <p className="text-base text-gray-700 font-semibold">
-                  {token ? "Items" : "Sign In"}
+                  {isAuthenticated ? "Items" : "Sign In"}
                 </p>
               </div>
             </Link>

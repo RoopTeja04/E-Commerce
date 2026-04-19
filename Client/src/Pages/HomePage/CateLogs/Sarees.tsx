@@ -5,11 +5,11 @@ import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import useCartStore from "../../../Stores/CartStores";
 import UserErrorPopUp from "../../../Components/GlobalComponents/UserErrorPopUp";
+import { useAuthStore } from "../../../Stores/AuthStore";
 
 const Sarees = () => {
   const navigate = useNavigate();
-
-  const userId = "69953171cf5df437b21879f3";
+  const { isAuthenticated } = useAuthStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [Product, setProduct] = useState<any[]>([]);
@@ -51,7 +51,7 @@ const Sarees = () => {
   };
 
   const handleAddToCart = async (productId: string) => {
-    if (!userId) {
+    if (!isAuthenticated) {
       setPopup(true);
       return;
     }
@@ -59,12 +59,12 @@ const Sarees = () => {
     setProductId(productId);
     setLoading(true);
     setState("cart");
-    const res = await addItemsInCart(userId, productId);
+    const res = await addItemsInCart(productId);
     setPopupInfo({ show: true, success: res.success, text: res.message });
 
     if (res.success) {
       setLoading(false);
-      getCartItems(userId);
+      getCartItems();
       setState("");
     }
 

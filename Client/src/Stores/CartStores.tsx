@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import {
   GetCartItems,
-  DeleteCartItem,
-  addItemsInCart,
+  DeleteCartItem as DeleteCartItemAPI,
+  addItemsInCart as addItemsInCartAPI,
 } from "../Services/Api";
 
 interface CartState {
@@ -14,9 +14,9 @@ interface CartState {
   setCartCount: (cartCount: number) => void;
   setLoading: (loading: boolean) => void;
 
-  getCartItems: (userId: string) => Promise<void>;
-  DeleteCartItem: (userId: string, productId: string) => Promise<boolean>;
-  addItemsInCart: (userId: string, productId: string) => Promise<{success: boolean, message: string}>;
+  getCartItems: () => Promise<void>;
+  DeleteCartItem: (productId: string) => Promise<boolean>;
+  addItemsInCart: (productId: string) => Promise<{success: boolean, message: string}>;
 }
 
 const useCartStore = create<CartState>((set) => ({
@@ -29,9 +29,9 @@ const useCartStore = create<CartState>((set) => ({
     setCartCount: (cartCount: number) => set({ cartCount }),
     setLoading: (loading: boolean) => set({ loading }),
 
-    getCartItems: async (userId: string) => {
+    getCartItems: async () => {
         try {
-            const res = await GetCartItems(userId);
+            const res = await GetCartItems();
             set({
               cartProducts: res.data.Products.Products,
               cartCount: res.data.Count,
@@ -41,21 +41,21 @@ const useCartStore = create<CartState>((set) => ({
         }
     },
 
-    DeleteCartItem: async (userId: string, productId: string) => {
+    DeleteCartItem: async (productId: string) => {
         try {
-            const res = await DeleteCartItem(userId, productId);
+            await DeleteCartItemAPI(productId);
             return true;
         } catch (error) {
             return false;
         }
     },
 
-    addItemsInCart: async(userId: string, productId: string) => {
+    addItemsInCart: async(productId: string) => {
         try {
-            const res = await addItemsInCart(userId, productId);
+            const res = await addItemsInCartAPI(productId);
             return { success: true, message: res.data.message };
         } catch (error: any) {
-            return { success: false, message: error.response?.data?.error || "Something went wrong" };
+            return { success: false, message: error.response?.data?.message || "Something went wrong" };
         }
     }
 
