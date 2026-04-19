@@ -5,11 +5,13 @@ import { SiTicktick } from "react-icons/si";
 import { useNavigate } from "react-router-dom";
 import useCartStore from "../../../Stores/CartStores";
 import UserErrorPopUp from "../../../Components/GlobalComponents/UserErrorPopUp";
+import { useAuthStore } from "../../../Stores/AuthStore";
 
 const Laptop = () => {
   const navigate = useNavigate();
 
-  const userId = "69953171cf5df437b21879f3";
+  const { user } = useAuthStore();
+  const userId = user?._id;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [Product, setProduct] = useState<any[]>([]);

@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    refreshToken: {
+        type: String,
+        default: null,
+    },
     updatedAt: {
         type: Date,
         default: Date.now()
