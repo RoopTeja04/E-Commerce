@@ -21,13 +21,10 @@ AuthAPI.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle token refresh
 AuthAPI.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        
-        // Don't attempt to refresh token for auth-specific endpoints (login, register, etc)
         const isAuthEndpoint = originalRequest.url.includes("/login") || 
                               originalRequest.url.includes("/register") || 
                               originalRequest.url.includes("/verify-otp") ||
@@ -38,15 +35,11 @@ AuthAPI.interceptors.response.use(
             try {
                 const res = await axios.post("http://localhost:5000/auth/refresh-token", {}, { withCredentials: true });
                 const { accessToken, user } = res.data;
-                
                 useAuthStore.getState().setAuth(user, accessToken);
-                
-                AuthAPI.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return AuthAPI(originalRequest);
             } catch (err) {
                 useAuthStore.getState().logout();
-                // Instead of hard redirect, let the component handle the logout state if needed
-                // window.location.href = '/login'; 
                 return Promise.reject(err);
             }
         }
@@ -117,21 +110,55 @@ export const SubscribeNewsLetter = async (email: string) => {
 
 export const CartAPI = axios.create({
     baseURL: "http://localhost:5003/cart",
+    withCredentials: true,
     headers: {
         "Content-Type": "application/json",
     },
 });
 
+// Reuse interceptors for CartAPI
+CartAPI.interceptors.request.use(
+    (config) => {
+        const token = useAuthStore.getState().token;
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+CartAPI.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+            try {
+                const res = await axios.post("http://localhost:5000/auth/refresh-token", {}, { withCredentials: true });
+                const { accessToken, user } = res.data;
+                useAuthStore.getState().setAuth(user, accessToken);
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                return CartAPI(originalRequest);
+            } catch (err) {
+                useAuthStore.getState().logout();
+                return Promise.reject(err);
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 // Cart API Calling
 
-export const GetCartItems = async (userId: string) => {
-    return await CartAPI.get(`/get/${userId}`);
+export const GetCartItems = async () => {
+    return await CartAPI.get("/get");
 }
 
-export const DeleteCartItem = async (userId: string, productId: string) => {
-    return await CartAPI.delete(`/delete/${userId}/${productId}`);
+export const DeleteCartItem = async (productId: string) => {
+    return await CartAPI.delete(`/delete/${productId}`);
 }
 
-export const addItemsInCart = async (userId: string, productId: string) => {
-    return await CartAPI.post("/add", { userId, productId });
+export const addItemsInCart = async (productId: string) => {
+    return await CartAPI.post("/add", { productId });
 }

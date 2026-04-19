@@ -3,17 +3,10 @@ const { FindUser, FindProduct, GetBulkProducts } = require("../Clients/InterServ
 
 exports.addToCart = async (req, res) => {
 
-    const { userId, productId } = req.body;
+    const { productId } = req.body;
+    const userId = req.user.ID;
 
     try {
-
-        const findUser = await FindUser(userId);
-
-        if (!findUser) {
-            return res.status(401).json({
-                message: "UnAuthorized. User Not Found"
-            })
-        }
 
         const findProduct = await FindProduct(productId);
 
@@ -40,17 +33,9 @@ exports.addToCart = async (req, res) => {
 
 exports.GetCartItems = async (req, res) => {
 
-    const { userId } = req.params;
+    const userId = req.user.ID;
 
     try {
-
-        const findUser = await FindUser(userId);
-
-        if (!findUser) {
-            return res.status(401).json({
-                message: "UnAuthorized. User Not Found"
-            })
-        }
 
         const GetCartItems = await CartService.GetCartItems(userId);
 
@@ -74,17 +59,10 @@ exports.GetCartItems = async (req, res) => {
 
 exports.deleteCartItem = async (req, res) => {
 
-    const { userId, productId } = req.params;
+    const { productId } = req.params;
+    const userId = req.user.ID;
 
     try {
-
-        const findUser = await FindUser(userId);
-
-        if (!findUser) {
-            return res.status(401).json({
-                message: "UnAuthorized. User Not Found"
-            })
-        }
 
         const findProduct = await FindProduct(productId);
 

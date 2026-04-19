@@ -10,8 +10,7 @@ import { useAuthStore } from "../../../Stores/AuthStore";
 const Laptop = () => {
   const navigate = useNavigate();
 
-  const { user } = useAuthStore();
-  const userId = user?._id;
+  const { isAuthenticated } = useAuthStore();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [Product, setProduct] = useState<any[]>([]);
@@ -53,7 +52,7 @@ const Laptop = () => {
   };
 
   const handleAddToCart = async (productId: string) => {
-    if (!userId) {
+    if (!isAuthenticated) {
       setPopup(true);
       return;
     }
@@ -61,12 +60,12 @@ const Laptop = () => {
     setProductId(productId);
     setLoading(true);
     setState("cart");
-    const res = await addItemsInCart(userId, productId);
+    const res = await addItemsInCart(productId);
     setPopupInfo({ show: true, success: res.success, text: res.message });
 
     if (res.success) {
       setLoading(false);
-      getCartItems(userId);
+      getCartItems();
       setState("");
     }
 

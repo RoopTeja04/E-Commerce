@@ -52,10 +52,10 @@ const Header = () => {
   };
 
   useEffect(() => {
-    if (userId) {
-        getCartItems(userId);
+    if (isAuthenticated) {
+        getCartItems();
     }
-  }, [userId, getCartItems]);
+  }, [isAuthenticated, getCartItems]);
 
   return (
     <>
