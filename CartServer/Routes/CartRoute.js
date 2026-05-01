@@ -1,5 +1,6 @@
 const { addToCart, GetCartItems, deleteCartItem } = require("../Controller/Cart");
-const auth = require("../Middleware/auth");
+const jwt = require("jsonwebtoken");
+const auth = require("../../SharedMiddleware/auth")(jwt);
 
 const router = require("express").Router();
 

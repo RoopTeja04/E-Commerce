@@ -3,7 +3,7 @@ const ProductService = require("../Services/ProductService");
 
 
 // Add Products in Bulk or single
-exports.addProductsInBulk = async (req, res) => {
+exports.addProductsInBulk = async (req, res, next) => {
     try {
 
         const products = req.body;
@@ -23,15 +23,12 @@ exports.addProductsInBulk = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Failed to insert products",
-            error: error.message
-        });
+        next(error);
     }
 }
 
 // Search Bar 
-exports.findItemsByCategorySearch = async (req, res) => {
+exports.findItemsByCategorySearch = async (req, res, next) => {
 
     const { category, productName } = req.query;
 
@@ -68,15 +65,12 @@ exports.findItemsByCategorySearch = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Failed to fetch products",
-            error: error.message
-        });
+        next(error);
     }
 }
 
 // Find Prdouct by ID
-exports.findItemsById = async (req, res) => {
+exports.findItemsById = async (req, res, next) => {
 
     const ProductId = req.params.ProductId;
 
@@ -89,15 +83,12 @@ exports.findItemsById = async (req, res) => {
         })
 
     } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
 // Fetching the mobiles in frontend
-exports.findByCategory = async (req, res) => {
+exports.findByCategory = async (req, res, next) => {
 
     const category = req.query.category;
 
@@ -111,15 +102,12 @@ exports.findByCategory = async (req, res) => {
         })
     }
     catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
 // Fetch Total Categories available in DB
-exports.findTotalCategories = async (req, res) => {
+exports.findTotalCategories = async (req, res, next) => {
     try {
         const Categories = await Products.distinct("category");
 
@@ -130,15 +118,12 @@ exports.findTotalCategories = async (req, res) => {
         })
     }
     catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
 // Fetch Related Products available in DB
-exports.findRelatedProducts = async (req, res) => {
+exports.findRelatedProducts = async (req, res, next) => {
 
     const { category, ProductId } = req.query;
 
@@ -152,15 +137,12 @@ exports.findRelatedProducts = async (req, res) => {
         })
     }
     catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
 // Get Bulk Products for cart
-exports.findProductsForCart = async (req, res) => {
+exports.findProductsForCart = async (req, res, next) => {
     const { ProductIds } = req.body;
 
     try {
@@ -172,9 +154,6 @@ exports.findProductsForCart = async (req, res) => {
         })
     }
     catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }

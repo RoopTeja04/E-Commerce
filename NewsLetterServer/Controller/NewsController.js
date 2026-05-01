@@ -1,6 +1,6 @@
 const NewsService = require("../Services/NewsService");
 
-exports.CreateNewsLetter = async (req, res) => {
+exports.CreateNewsLetter = async (req, res, next) => {
     try {
         const { email } = req.body;
         if (!email) {
@@ -15,9 +15,6 @@ exports.CreateNewsLetter = async (req, res) => {
         })
 
     } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
