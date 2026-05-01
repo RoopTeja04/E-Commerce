@@ -8,6 +8,14 @@ exports.addToCart = async (req, res, next) => {
 
     try {
 
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
+
         const findProduct = await FindProduct(productId);
 
         if (!findProduct) {
@@ -34,6 +42,14 @@ exports.GetCartItems = async (req, res, next) => {
 
     try {
 
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
+
         const GetCartItems = await CartService.GetCartItems(userId);
 
         const ProductIds = GetCartItems.map((item) => item.productId);
@@ -57,6 +73,14 @@ exports.deleteCartItem = async (req, res, next) => {
     const userId = req.user.ID;
 
     try {
+
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
 
         const findProduct = await FindProduct(productId);
 
