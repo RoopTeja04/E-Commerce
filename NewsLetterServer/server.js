@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const ConnectDB = require('../SharedDB/configDB');
 const NewsLetterRoutes = require('./Routes/NewsLetterRoutes');
+const { errorHandler } = require("../SharedMiddleware/common");
 
 ConnectDB(mongoose);
 
@@ -15,6 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/newsletter", NewsLetterRoutes);
+app.use(errorHandler);
 
 app.get('/', (req, res) => {
     res.status(200).json({

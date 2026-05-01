@@ -44,8 +44,13 @@ const useCartStore = create<CartState>((set) => ({
     DeleteCartItem: async (productId: string) => {
         try {
             await DeleteCartItemAPI(productId);
+            set((state) => ({
+              cartProducts: state.cartProducts.filter((product: any) => product._id !== productId),
+              cartCount: Math.max(0, state.cartCount - 1),
+            }));
             return true;
         } catch (error) {
+            console.log(error);
             return false;
         }
     },
@@ -53,6 +58,10 @@ const useCartStore = create<CartState>((set) => ({
     addItemsInCart: async(productId: string) => {
         try {
             const res = await addItemsInCartAPI(productId);
+            // Optionally update cartCount here if you want real-time add as well
+            set((state) => ({
+                cartCount: state.cartCount + 1
+            }));
             return { success: true, message: res.data.message };
         } catch (error: any) {
             return { success: false, message: error.response?.data?.message || "Something went wrong" };

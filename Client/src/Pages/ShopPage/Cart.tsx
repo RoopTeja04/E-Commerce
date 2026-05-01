@@ -4,10 +4,11 @@ import { BiSolidCartDownload } from "react-icons/bi";
 import { IoMdArrowBack } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { FaExclamationTriangle } from "react-icons/fa";
+import { useAuthStore } from "../../Stores/AuthStore";
 
 const Cart = () => {
-  const userId = "69953171cf5df437b21879f3";
-
+  const { user } = useAuthStore();
+  const userId = user?.ID || user?._id;
   const navigate = useNavigate();
   const { getCartItems, cartProducts, DeleteCartItem, loading, setLoading } =
     useCartStore();
@@ -16,16 +17,15 @@ const Cart = () => {
   const [productId, setProductId] = useState("");
 
   useEffect(() => {
-    getCartItems(userId);
-  }, [userId]);
+    getCartItems();
+  }, []);
 
   const handleDeleteCartItem = async (productId: string) => {
     setProductId(productId);
     setLoading(true);
     setState("delete");
-    const res = await DeleteCartItem(userId, productId);
+    const res = await DeleteCartItem(productId);
     if (res) {
-      getCartItems(userId);
       setState("");
       setLoading(false);
       setProductId("");
@@ -57,82 +57,82 @@ const Cart = () => {
           <>
             <div className="text-center text-2xl font-bold bg-[#ebebeb] rounded-2xl w-full space-y-4">
               <div className="flex flex-col space-y-4 justify-center">
-                {cartProducts.map((product: any, index: number) => (
-                  <div
-                    key={product._id}
-                    className={`flex items-center w-full space-x-8 pl-8 py-6 transition-colors ${index !== cartProducts.length - 1 ? "border-b border-gray-300" : ""}`}
-                  >
+                  {cartProducts.map((product: any, index: number) => (
                     <div
-                      onClick={() =>
-                        navigate("/product", {
-                          state: { product: product._id },
-                        })
-                      }
-                      className="h-64 w-60 flex items-center justify-center overflow-hidden cursor-pointer"
+                      key={product._id}
+                    className={`flex items-center w-full space-x-8 pl-8 py-6 transition-colors ${index !== cartProducts.length - 1 ? "border-b border-gray-300" : ""}`}
                     >
-                      {product.imageURL.status_code === 200 ||
-                      product.imageURL.status_code === 201 ? (
-                        <img
-                          src={product.imageURL.url}
-                          alt={product.name}
-                          className="max-h-full max-w-full w-auto object-cover hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="bg-gray-200 h-full w-full flex items-center justify-center rounded-lg">
-                          <span className="text-gray-400 font-medium text-base">
-                            No Preview Available
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col space-y-0.5 items-start justify-center">
-                      <p className="font-semibold text-gray-800 text-lg line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                        {product.name.slice(0, 1).toUpperCase() +
-                          product.name.slice(1).toLowerCase()}
-                      </p>
-                      <p className="text-[#0f0fbd] font-semibold mt-1 text-lg">
-                        {product.price.toLocaleString("en-IN", {
-                          style: "currency",
-                          currency: "INR",
-                          maximumFractionDigits: 0,
-                        })}
-                      </p>
-                      <p className="text-gray-500 text-sm mt-2 font-semibold">
-                        Added on: {new Date(product.createdAt).toDateString()}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col justify-center ml-auto pr-8 w-56 space-y-4">
-                      <button
-                        disabled={
-                          loading &&
-                          state === "delete" &&
-                          productId === product._id
-                        }
-                        onClick={() => handleDeleteCartItem(product._id)}
-                        className="w-full border-2 border-red-400 text-red-500 transition-colors rounded-full font-medium text-base py-2.5"
-                      >
-                        {loading &&
-                        state === "delete" &&
-                        productId === product._id
-                          ? "Removing..."
-                          : "Remove From Cart"}
-                      </button>
-                      <button
+                      <div
                         onClick={() =>
                           navigate("/product", {
                             state: { product: product._id },
                           })
                         }
-                        className="w-full border-2 border-[#0f0fbd] bg-[#0f0fbd] text-white hover:bg-blue-800 transition-colors rounded-full font-medium text-base py-2.5 cursor-pointer"
+                      className="h-64 w-60 flex items-center justify-center overflow-hidden cursor-pointer"
                       >
-                        Buy Now
-                      </button>
+                        {product.imageURL.status_code === 200 ||
+                        product.imageURL.status_code === 201 ? (
+                          <img
+                            src={product.imageURL.url}
+                            alt={product.name}
+                          className="max-h-full max-w-full w-auto object-cover hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="bg-gray-200 h-full w-full flex items-center justify-center rounded-lg">
+                          <span className="text-gray-400 font-medium text-base">
+                            No Preview Available
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    <div className="flex flex-col space-y-0.5 items-start justify-center">
+                      <p className="font-semibold text-gray-800 text-lg line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                          {product.name.slice(0, 1).toUpperCase() +
+                            product.name.slice(1).toLowerCase()}
+                        </p>
+                      <p className="text-[#0f0fbd] font-semibold mt-1 text-lg">
+                          {product.price.toLocaleString("en-IN", {
+                            style: "currency",
+                            currency: "INR",
+                            maximumFractionDigits: 0,
+                          })}
+                        </p>
+                      <p className="text-gray-500 text-sm mt-2 font-semibold">
+                        Added on: {new Date(product.createdAt).toDateString()}
+                        </p>
+                      </div>
+
+                    <div className="flex flex-col justify-center ml-auto pr-8 w-56 space-y-4">
+                        <button
+                          disabled={
+                            loading &&
+                            state === "delete" &&
+                            productId === product._id
+                          }
+                          onClick={() => handleDeleteCartItem(product._id)}
+                        className="w-full border-2 border-red-400 text-red-500 transition-colors rounded-full font-medium text-base py-2.5"
+                        >
+                          {loading &&
+                          state === "delete" &&
+                          productId === product._id
+                            ? "Removing..."
+                          : "Remove From Cart"}
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate("/product", {
+                              state: { product: product._id },
+                            })
+                          }
+                        className="w-full border-2 border-[#0f0fbd] bg-[#0f0fbd] text-white hover:bg-blue-800 transition-colors rounded-full font-medium text-base py-2.5 cursor-pointer"
+                        >
+                          Buy Now
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
           </>
         ) : (
           <div className="text-center text-2xl font-bold bg-[#ebebeb] rounded-2xl py-20 w-full space-y-4 flex flex-col items-center">

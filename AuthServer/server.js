@@ -8,13 +8,14 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const ConnectDB = require('../SharedDB/configDB');
 const AuthRouter = require("./Routes/Routes")
+const { errorHandler } = require("../SharedMiddleware/common");
 
 ConnectDB(mongoose);
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173", // Vite default port
+    origin: "http://localhost:5173",
     credentials: true,
 }));
 app.use(express.json());
@@ -33,6 +34,7 @@ app.get("/healthz", (req, res) => {
 })
 
 app.use("/auth", AuthRouter);
+app.use(errorHandler);
 
 const PORT = process.env.AuthServerPORT;
 app.listen(PORT, () => {

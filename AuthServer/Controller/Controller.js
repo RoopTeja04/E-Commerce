@@ -3,7 +3,7 @@ const jwt_Token = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { SendMail } = require("../utils/mails");
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   const data = req.body;
 
   try {
@@ -52,14 +52,11 @@ exports.register = async (req, res) => {
             For Verification.`,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };
 
-exports.VerifyOTP = async (req, res) => {
+exports.VerifyOTP = async (req, res, next) => {
   const data = req.body;
 
   try {
@@ -126,14 +123,11 @@ exports.VerifyOTP = async (req, res) => {
       user: userResponse
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   const data = req.body;
 
   try {
@@ -219,14 +213,11 @@ exports.login = async (req, res) => {
       user: userResponse
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };
 
-exports.ResendOTP = async (req, res) => {
+exports.ResendOTP = async (req, res, next) => {
   const data = req.body;
 
   try {
@@ -265,14 +256,11 @@ exports.ResendOTP = async (req, res) => {
     });
 
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };
 
-exports.findUserById = async (req, res) => {
+exports.findUserById = async (req, res, next) => {
   const { userId } = req.params;
 
   try {
@@ -289,14 +277,11 @@ exports.findUserById = async (req, res) => {
       user: user,
     });
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };
 
-exports.refreshToken = async (req, res) => {
+exports.refreshToken = async (req, res, next) => {
   const cookies = req.cookies;
 
   if (!cookies?.refreshToken) {
@@ -330,9 +315,6 @@ exports.refreshToken = async (req, res) => {
       }
     );
   } catch (err) {
-    return res.status(500).json({
-      message: "Internal Server Down",
-      error: err.message,
-    });
+    next(err);
   }
 };

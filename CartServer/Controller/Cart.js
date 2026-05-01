@@ -1,12 +1,20 @@
 const CartService = require("../Services/CartService");
 const { FindUser, FindProduct, GetBulkProducts } = require("../Clients/InterService");
 
-exports.addToCart = async (req, res) => {
+exports.addToCart = async (req, res, next) => {
 
     const { productId } = req.body;
     const userId = req.user.ID;
 
     try {
+
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
 
         const findProduct = await FindProduct(productId);
 
@@ -24,18 +32,23 @@ exports.addToCart = async (req, res) => {
         })
 
     } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
-exports.GetCartItems = async (req, res) => {
+exports.GetCartItems = async (req, res, next) => {
 
     const userId = req.user.ID;
 
     try {
+
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
 
         const GetCartItems = await CartService.GetCartItems(userId);
 
@@ -50,19 +63,24 @@ exports.GetCartItems = async (req, res) => {
         })
 
     } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }
 
-exports.deleteCartItem = async (req, res) => {
+exports.deleteCartItem = async (req, res, next) => {
 
     const { productId } = req.params;
     const userId = req.user.ID;
 
     try {
+
+        const findUser = await FindUser(userId);
+
+        if (!findUser) {
+            return res.status(404).json({
+                message: "User Not Found! Try to Login Again"
+            })
+        }
 
         const findProduct = await FindProduct(productId);
 
@@ -80,9 +98,6 @@ exports.deleteCartItem = async (req, res) => {
         })
 
     } catch (err) {
-        return res.status(500).json({
-            message: "Internal Server Error",
-            error: err.message
-        })
+        next(err);
     }
 }

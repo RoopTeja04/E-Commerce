@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const ConnectDB = require('../SharedDB/configDB');
 const CartRoute = require("./Routes/CartRoute");
+const { errorHandler } = require("../SharedMiddleware/common");
 
 const app = express();
 ConnectDB(mongoose);
@@ -31,6 +32,7 @@ app.get("/healthz", (req, res) => {
 })
 
 app.use("/cart", CartRoute);
+app.use(errorHandler);
 
 const PORT = process.env.CartServerPORT;
 app.listen(PORT, () => {
